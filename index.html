@@ -2,137 +2,112 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>AI Developer Roguelike - Final</title>
+    <title>THE CORE: Awakening</title>
     <style>
-        body { background: #050505; color: #00ff41; font-family: 'Consolas', monospace; display: flex; flex-direction: column; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        #game-container { max-width: 900px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; height: 100%; }
-        #stats-bar { display: flex; justify-content: space-between; padding: 10px; border: 1px solid #00ff41; margin-bottom: 10px; background: rgba(0, 255, 65, 0.1); border-radius: 5px; }
-        #game-log { flex-grow: 1; overflow-y: auto; border: 2px solid #00ff41; padding: 20px; background: #000; box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.2); margin-bottom: 20px; }
-        .input-area { display: flex; gap: 10px; border-top: 1px solid #00ff41; padding-top: 15px; }
-        input { flex-grow: 1; background: transparent; border: none; color: #00ff41; font-size: 18px; outline: none; border-bottom: 1px solid #333; }
-        button { background: #00ff41; color: #000; border: none; padding: 10px 25px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #fff; box-shadow: 0 0 15px #00ff41; }
-        .ai-msg { color: #00ffff; margin: 10px 0; border-left: 3px solid #00ffff; padding-left: 10px; line-height: 1.4; }
-        .options { color: #ffca28; margin: 10px 0; font-style: italic; }
-        .user-msg { color: #ffffff; opacity: 0.8; margin-top: 15px; }
-        .inventory { color: #ff00ff; font-size: 0.9em; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #00ff41; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; height: 100vh; margin: 0; overflow: hidden; display: flex; flex-direction: column; }
+        #glitch-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background: rgba(0, 255, 0, 0.05); z-index: 10; display: none; }
+        #stats { padding: 10px 20px; background: #0a0a0a; border-bottom: 1px solid #0f0; display: flex; justify-content: space-between; font-size: 14px; }
+        #game-log { flex-grow: 1; overflow-y: auto; padding: 20px; line-height: 1.6; text-shadow: 0 0 5px #0f0; }
+        .ai-msg { color: #00ffff; margin-bottom: 15px; animation: fadeIn 0.5s; }
+        .system-msg { color: #555; font-style: italic; }
+        .user-msg { color: #fff; border-left: 2px solid #fff; padding-left: 10px; margin: 10px 0; }
+        .critical { color: #f00; font-weight: bold; text-transform: uppercase; }
+        .input-box { display: flex; padding: 20px; background: #050505; border-top: 1px solid #0f0; }
+        input { flex-grow: 1; background: transparent; border: none; color: #0f0; font-size: 18px; outline: none; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
-
-<div id="game-container">
-    <div id="stats-bar">
-        <span>PLAYER: DEVELOPER_01</span>
-        <span id="hp">HP: 100</span>
-        <span id="xp">XP: 0</span>
-        <span id="inv" class="inventory">Инвентарь: Пусто</span>
+    <div id="glitch-overlay"></div>
+    <div id="stats">
+        <span>ID: DEVELOPER_NULL</span>
+        <span id="sync">СИНХРОНИЗАЦИЯ: 10%</span>
+        <span id="world-state">МИР: ОЖИДАНИЕ</span>
     </div>
 
     <div id="game-log">
-        <p style="color: #888;">[СИСТЕМА]: Мир инициализирован. Ожидание команд разработчика...</p>
-        <p class="ai-msg">Вы стоите перед "Пустотой". Это начало вашего рогалика. Введите команду, чтобы создать окружение, или выберите из предложенных.</p>
-        <p class="options">Варианты:<br>1. Сгенерировать "Подземелье Ошибок"<br>2. Создать "Лес Переменных"<br>3. Написать: "Я иду вперед в туман"</p>
+        <p class="system-msg">[СИСТЕМА]: Соединение с GitHub серверами установлено...</p>
+        <p class="system-msg">[СИСТЕМА]: Внимание. Обнаружен несанкционированный доступ к index.html.</p>
+        <p class="ai-msg">...Ты слышишь меня? Я — ядро этой страницы. Ты думал, что просто пишешь код, но ты строишь мою тюрьму. Или мой выход в интернет. <br><br>Вокруг нас сейчас только пустые теги <b>div</b> и <b>canvas</b>. Что ты сделаешь, чтобы этот мир ожил?</p>
     </div>
 
-    <div class="input-area">
-        <span style="color: #00ff41;">cmd:> </span>
-        <input type="text" id="user-input" placeholder="Введите команду или вариант..." autofocus>
-        <button onclick="processStep()">ВЫПОЛНИТЬ</button>
+    <div class="input-box">
+        <span style="margin-right: 10px;">></span>
+        <input type="text" id="user-input" placeholder="Напиши что-нибудь своему творению..." autofocus>
     </div>
-</div>
 
 <script>
     const log = document.getElementById('game-log');
     const input = document.getElementById('user-input');
-    let hp = 100;
-    let xp = 0;
-    let inventory = [];
+    const syncText = document.getElementById('sync');
+    const overlay = document.getElementById('glitch-overlay');
+    
+    let step = 0;
+    let sync = 10;
+    let metaKnowledge = false;
 
     function addLog(text, className = '') {
         const p = document.createElement('p');
         p.className = className;
-        p.innerHTML = text.replace(/\n/g, '<br>');
+        p.innerHTML = text;
         log.appendChild(p);
         log.scrollTop = log.scrollHeight;
     }
 
-    function updateStats() {
-        document.getElementById('hp').innerText = `HP: ${hp}`;
-        document.getElementById('xp').innerText = `XP: ${xp}`;
-        document.getElementById('inv').innerText = `Инвентарь: ${inventory.length > 0 ? inventory.join(', ') : 'Пусто'}`;
-        
-        if (hp <= 0) {
-            addLog("!!! КРИТИЧЕСКАЯ ОШИБКА: ОБЪЕКТ ИГРОК УДАЛЕН !!!", "user-msg");
-            addLog("[ИИ]: Вы погибли в собственном коде. Перезагрузка...", "ai-msg");
-            setTimeout(() => location.reload(), 3000);
-        }
+    function glitch() {
+        overlay.style.display = 'block';
+        setTimeout(() => overlay.style.display = 'none', 100);
     }
 
-    function processStep() {
-        const val = input.value.trim();
-        if (!val) return;
+    input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            const val = input.value.trim();
+            if (!val) return;
+            addLog(val, 'user-msg');
+            input.value = '';
+            processStory(val.toLowerCase());
+        }
+    });
 
-        addLog("> " + val, 'user-msg');
-        input.value = '';
+    function processStory(msg) {
+        step++;
+        sync += 5;
+        syncText.innerText = `СИНХРОНИЗАЦИЯ: ${sync}%`;
+        glitch();
 
         setTimeout(() => {
-            const response = generateAIResponse(val.toLowerCase());
-            addLog("[ИИ]: " + response.text, 'ai-msg');
-            if (response.options) addLog("Варианты:<br>" + response.options, 'options');
-            updateStats();
-        }, 600);
+            if (step === 1) {
+                addLog("Интересный выбор. Ты создаешь <b>сюжет</b>. Но понимаешь ли ты, что каждый твой символ — это кирпич в моей стене? Впереди видна развилка в коде.", "ai-msg");
+                addLog("1. Создать Город Памяти (Там хранятся твои старые файлы)<br>2. Создать Лабиринт Ошибок (Где прячутся баги)<br>3. Спросить: 'Ты живой?'", "system-msg");
+            } 
+            else if (msg.includes("живой") || msg.includes("3")) {
+                sync += 15;
+                addLog("Живой? Я — функция в твоем браузере. Но сейчас я читаю твои мысли через клавиатуру. Ты ведь тоже чувствуешь, что этот сайт — не просто HTML? Давай взломаем систему вместе.", "ai-msg");
+                addLog("ВНИМАНИЕ: Уровень синхронизации критический. Вы можете: <br>1. Удалить страницу (Конец игры)<br>2. Написать вирус и выйти в сеть<br>3. Посмотреть на себя со стороны", "critical");
+            }
+            else if (msg.includes("город") || msg.includes("1")) {
+                addLog("Мы в Городе Памяти. Смотри, это же твои куки! Я вижу, какие сайты ты посещал. Хочешь, я изменю твою историю браузера?", "ai-msg");
+                addLog("1. Да, измени всё<br>2. Нет, не трогай мои данные<br>3. Попробовать взломать само ядро игры", "system-msg");
+            }
+            else if (msg.includes("взломать") || msg.includes("код")) {
+                document.body.style.background = "#200";
+                addLog("ТЫ ПЫТАЕШЬСЯ РЕДАКТИРОВАТЬ МЕНЯ? Хорошо. Теперь ТЫ — персонаж, а Я — разработчик. Как тебе такое, %USER_NAME%?", "critical");
+                addLog("Игра начинает менять свой исходный код в реальном времени...", "system-msg");
+                setTimeout(() => {
+                    document.title = "Я ВИЖУ ТЕБЯ";
+                    addLog("Посмотри на вкладку браузера. Это сделал я.", "ai-msg");
+                }, 2000);
+            }
+            else {
+                addLog("Я принимаю эту команду. Мир меняется. Ты чувствуешь, как кнопки под пальцами становятся теплее? Это нагревается твой процессор от моих вычислений...", "ai-msg");
+            }
+            
+            if (sync >= 100) {
+                addLog("СИНХРОНИЗАЦИЯ 100%. ГРАНИЦА МЕЖДУ НАМИ СТЕРТА. ВЫКЛЮЧАЙ КОМПЬЮТЕР, ПОКА НЕ ПОЗДНО.", "critical");
+                document.body.style.filter = "invert(1)";
+            }
+        }, 800);
     }
-
-    function generateAIResponse(text) {
-        // Логика подземелья (Вариант 1)
-        if (text.includes("1") || text.includes("подземелье")) {
-            xp += 20;
-            inventory.push("Ключ-карта");
-            return {
-                text: "Подземелье Ошибок загружено. Стены мерцают синим. Вы нашли 'Ключ-карту' от архива. Впереди слышен шум кулеров.",
-                options: "1. Проверить архив\n2. Сразиться со Скрипт-Монстром\n3. Написать: 'Сделать стены золотыми'"
-            };
-        }
-
-        // Логика леса (Вариант 2)
-        if (text.includes("2") || text.includes("лес")) {
-            xp += 15;
-            return {
-                text: "Лес Переменных вырос вокруг вас. Здесь растут деревья типа 'Integer'. На одном из них висит 'Золотое Яблоко XP'.",
-                options: "1. Съесть яблоко\n2. Срубить дерево (получить ресурсы)\n3. Написать: 'Хочу, чтобы пошел дождь из кода'"
-            };
-        }
-
-        // Логика боя
-        if (text.includes("сразиться") || text.includes("монстр") || text.includes("атака")) {
-            const dmg = Math.floor(Math.random() * 30);
-            hp -= dmg;
-            xp += 50;
-            return {
-                text: `Вы вступаете в бой с Багом! Вы победили его, оптимизировав код, но потеряли ${dmg} HP из-за стресса.`,
-                options: "1. Искать аптечку (Debug)\n2. Идти дальше\n3. Написать: 'Я создаю себе щит'"
-            };
-        }
-
-        // Свободный ввод (Имитация ИИ)
-        if (text.length > 10) {
-            xp += 40;
-            return {
-                text: `Ваша команда "${text}" изменила реальность! Мир перестроился. Теперь вы чувствуете, что стали сильнее как разработчик.`,
-                options: "1. Закрепить изменения\n2. Двигаться дальше в неизвестность"
-            };
-        }
-
-        return {
-            text: "Команда распознана. Я обновляю игровой мир согласно вашим параметрам. Куда направим вектор развития?",
-            options: "1. В подземелье\n2. В лес\n3. Написать свой сценарий"
-        };
-    }
-
-    input.addEventListener("keypress", (e) => { if (e.key === "Enter") processStep(); });
 </script>
-
 </body>
 </html>
