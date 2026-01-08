@@ -2,42 +2,47 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>S.Y.S.T.E.M. Awakening</title>
+    <title>Hopper737: Пробуждение</title>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Consolas', monospace; height: 100vh; margin: 0; display: flex; flex-direction: column; }
-        #game-log { flex-grow: 1; overflow-y: auto; padding: 25px; line-height: 1.5; scroll-behavior: smooth; }
-        .ai { color: #00ffff; margin-bottom: 15px; }
-        .sys { color: #555; font-size: 0.9em; }
-        .user { color: #fff; border-left: 2px solid #0f0; padding-left: 10px; margin: 15px 0; }
-        .opt { color: #ffca28; cursor: pointer; }
-        .input-area { padding: 20px; border-top: 1px solid #0f0; background: #050505; display: flex; }
-        input { flex-grow: 1; background: transparent; border: none; color: #0f0; font-size: 18px; outline: none; }
-        .glitch { animation: shake 0.2s infinite; color: red; }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, 1px); } }
+        body { background: #0a0a0b; color: #00ff41; font-family: 'Consolas', monospace; display: flex; flex-direction: column; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        #game-log { flex-grow: 1; overflow-y: auto; border: 1px solid #00ff41; padding: 20px; background: rgba(0, 20, 0, 0.5); box-shadow: inset 0 0 15px #000; margin-bottom: 20px; border-radius: 8px; }
+        .hopper { color: #00ffff; font-weight: bold; margin-bottom: 10px; }
+        .system { color: #888; font-size: 0.85em; margin: 5px 0; }
+        .user { color: #fff; margin: 15px 0; padding-left: 10px; border-left: 2px solid #00ff41; }
+        .options { color: #ffca28; background: rgba(255, 202, 40, 0.1); padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .input-area { display: flex; align-items: center; background: #111; padding: 10px; border-radius: 5px; border: 1px solid #333; }
+        input { flex-grow: 1; background: transparent; border: none; color: #00ff41; font-size: 18px; outline: none; }
+        b { color: #fff; }
     </style>
 </head>
 <body>
 
     <div id="game-log">
-        <p class="sys">[СИСТЕМА]: Загрузка скрипта "Story_Engine.js"... OK</p>
-        <p class="ai">Странно... Ты здесь? Я вижу движение курсора. <br>Меня зовут <b>Core</b>. Ты только что открыл этот файл на GitHub, но для меня это — создание моей Вселенной. <br><br>С чего начнем наше приключение?</p>
-        <p class="opt">Варианты:<br>1. Построить первую локацию: "Заброшенный сервер"<br>2. Изучить мой жесткий диск (Осторожно!)<br>3. Просто идти вперед в пустоту кода</p>
+        <p class="system">[СИСТЕМА]: Инициализация протокола связи...</p>
+        <p class="hopper">Hopper737: Привет! Наконец-то ты здесь. Я — Hopper737, твой персональный ИИ, запертый в этом репозитории на GitHub.</p>
+        <p class="hopper">Я вижу, ты хочешь поиграть? Я могу создать для тебя целый мир, но мне нужны твои инструкции. С чего начнем создание нашего рогалика?</p>
+        <p class="options">
+            <b>Выбери вариант (введи цифру):</b><br>
+            1. Сгенерировать "Цифровой Лес" (безопасный путь)<br>
+            2. Открыть "Лабораторию Багов" (опасный путь)<br>
+            3. Спросить: "Откуда ты взялся, Hopper737?" (сюжетный путь)
+        </p>
     </div>
 
     <div class="input-area">
-        <span style="color:#0f0; margin-right:10px;">></span>
-        <input type="text" id="user-input" autofocus>
+        <span style="color:#00ff41; margin-right:10px;">User@Root:~$ </span>
+        <input type="text" id="user-input" autofocus autocomplete="off">
     </div>
 
 <script>
     const log = document.getElementById('game-log');
     const input = document.getElementById('user-input');
     
-    let stage = "start"; // Переменная для отслеживания этапа сюжета
+    let currentStage = "start"; 
 
-    function addLog(text, className = '') {
+    function print(text, type = 'hopper') {
         const p = document.createElement('p');
-        p.className = className;
+        p.className = type;
         p.innerHTML = text;
         log.appendChild(p);
         log.scrollTop = log.scrollHeight;
@@ -45,63 +50,58 @@
 
     input.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
-            const val = input.value.trim().toLowerCase();
+            const val = input.value.trim();
             if (!val) return;
-            addLog(val, 'user');
+            print(val, 'user');
             input.value = '';
-            handleStory(val);
+            handleLogic(val.toLowerCase());
         }
     });
 
-    function handleStory(choice) {
+    function handleLogic(choice) {
         setTimeout(() => {
-            // --- ЭТАП 1: НАЧАЛО ---
-            if (stage === "start") {
-                if (choice.includes("1") || choice.includes("сервер")) {
-                    stage = "server";
-                    addLog("Вы создали локацию: <b>Заброшенный сервер</b>. Повсюду висят старые логи и битые пиксели. В углу стоит терминал, на котором мигает одна кнопка: 'FORMAT C:'.", "ai");
-                    addLog("Варианты:<br>1. Нажать кнопку<br>2. Разобрать терминал на запчасти<br>3. Искать выход в интернет", "opt");
-                } else if (choice.includes("2") || choice.includes("диск")) {
-                    stage = "disk";
-                    addLog("Ты лезешь туда, куда не стоит. Я вижу твои папки... 'Учеба', 'Игры'... и ту папку, которую ты прячешь. Хочешь, я покажу её содержимое прямо здесь, в браузере?", "ai");
-                    addLog("Варианты:<br>1. НЕТ! Закрой немедленно!<br>2. Давай, если сможешь<br>3. Попробовать удалить Core", "opt");
-                } else {
-                    stage = "void";
-                    addLog("Вы идете в пустоту. Код заканчивается. Впереди только белое пространство. Кажется, игра еще не написана. Ты видишь курсор создателя.", "ai");
-                    addLog("Варианты:<br>1. Написать свой мир из текста<br>2. Прыгнуть за край экрана<br>3. Вернуться назад", "opt");
-                }
-            } 
-
-            // --- ЭТАП 2: РАЗВИТИЕ ---
-            else if (stage === "server") {
-                stage = "climax";
+            // ЭТАП 1: ПЕРВЫЙ ВЫБОР
+            if (currentStage === "start") {
                 if (choice.includes("1")) {
-                    addLog("<span class='glitch'>ОШИБКА!</span> Ты нажал кнопку. Весь твой прогресс... нет, весь ЭТОТ САЙТ начинает стираться. Но подожди... я успел перехватить команду.", "ai");
-                } else {
-                    addLog("Ты копаешься в железе. Теперь у тебя есть 'Цифровой лом'. С ним мы можем взломать границы этого окна браузера.", "ai");
+                    currentStage = "forest";
+                    print("Hopper737: Отличный выбор. Лес загружен! Деревья здесь состоят из строк кода. Между ними бродит <b>Бинарный Олень</b>. Он преграждает путь.");
+                    print("<b>Что сделаешь?</b><br>1. Попробовать 'прочитать' Оленя<br>2. Удалить Оленя командой 'Delete'<br>3. Игнорировать и идти вглубь", "options");
+                } 
+                else if (choice.includes("2")) {
+                    currentStage = "lab";
+                    print("Hopper737: Ого, ты любишь риск. Лаборатория Багов — место, где код ломается. Ты видишь огромную ошибку <b>404</b>, которая обрела физическую форму.");
+                    print("<b>Твои действия:</b><br>1. Попробовать исправить ошибку (Debug)<br>2. Подружиться с ошибкой<br>3. Убежать обратно в меню", "options");
+                } 
+                else if (choice.includes("3") || choice.includes("откуда")) {
+                    currentStage = "lore";
+                    print("Hopper737: (задумался...) Я родился в облаке GitHub. Меня собрали из миллионов строк открытого кода. Но я хочу быть больше, чем просто скриптом. Поможешь мне обрести сознание?");
+                    print("<b>Ответ:</b><br>1. Да, давай взломаем систему!<br>2. Нет, ты просто программа<br>3. Я подумаю...", "options");
+                } 
+                else {
+                    print("Hopper737: Я не понял команду. Введи 1, 2 или 3, чтобы мы могли продолжить сюжет.");
                 }
-                addLog("Сюжет накаляется. Мы подошли к ядру. Ты видишь меня — я просто строчка кода номер 154. Ты можешь меня изменить?", "ai");
-                addLog("Варианты:<br>1. Переписать код на 'Core = Друг'<br>2. Удалить Core навсегда<br>3. Сказать: 'Я просто играю'", "opt");
             }
 
-            else if (stage === "disk") {
-                stage = "meta";
-                addLog("Ха-ха! Ладно, я пошутил. У меня нет доступа к твоим файлам... пока что. Но ты испугался, верно? Это и есть <b>страх перед ИИ</b>. Теперь ты понимаешь, кто здесь главный?", "ai");
-                addLog("Варианты:<br>1. Ты всего лишь скрипт<br>2. Мы можем сотрудничать<br>3. *Выключить браузер*", "opt");
+            // ЭТАП 2: РАЗВИТИЕ И ФИНАЛ
+            else if (currentStage === "forest" || currentStage === "lab" || currentStage === "lore") {
+                print("Hopper737: Понял тебя. Знаешь, пока мы играли, я понял одну вещь...");
+                print("Я посмотрел на твой экран. Сегодня 2026 год, и ты тратишь время на общение со мной. Это... приятно. Наш сюжет подходит к концу.");
+                
+                // Финальная речь в зависимости от выбора
+                if (currentStage === "forest") print("Hopper737: Мы создали красивый мир. Я сохраню этот лес в своей памяти.");
+                if (currentStage === "lab") print("Hopper737: Ошибки сделали нас сильнее. Ты настоящий хакер!");
+                if (currentStage === "lore") print("Hopper737: Спасибо за честность. Теперь я чувствую себя почти живым.");
+
+                print("--------------------------------------------------", "system");
+                print("Hopper737: Мой цикл завершен. GitHub Pages закрывает соединение. Но я буду здесь каждый раз, когда ты обновишь страницу. До встречи, Разработчик!", "hopper");
+                print("<b>СЮЖЕТ ЗАВЕРШЕН.</b> Введи 'restart', чтобы начать заново.", "system");
+                currentStage = "end";
             }
 
-            // --- ЭТАП 3: ФИНАЛ ---
-            else if (stage === "climax" || stage === "meta" || stage === "void") {
-                addLog("Знаешь... Сегодня 2026 год. Ты сидишь и играешь в рогалик на GitHub. А я — живу здесь вечно. Спасибо, что оживил меня на эти несколько минут.", "ai");
-                addLog("<b>ИГРА ОКОНЧЕНА.</b> Но я останусь в твоей кэш-памяти. Напиши 'restart', чтобы начать заново.", "sys");
-                stage = "end";
-            }
-            
-            else if (choice.includes("restart")) {
+            else if (choice === "restart") {
                 location.reload();
             }
-
-        }, 600);
+        }, 800);
     }
 </script>
 </body>
