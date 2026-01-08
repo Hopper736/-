@@ -2,49 +2,38 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>THE CORE: Awakening</title>
+    <title>S.Y.S.T.E.M. Awakening</title>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; height: 100vh; margin: 0; overflow: hidden; display: flex; flex-direction: column; }
-        #glitch-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background: rgba(0, 255, 0, 0.05); z-index: 10; display: none; }
-        #stats { padding: 10px 20px; background: #0a0a0a; border-bottom: 1px solid #0f0; display: flex; justify-content: space-between; font-size: 14px; }
-        #game-log { flex-grow: 1; overflow-y: auto; padding: 20px; line-height: 1.6; text-shadow: 0 0 5px #0f0; }
-        .ai-msg { color: #00ffff; margin-bottom: 15px; animation: fadeIn 0.5s; }
-        .system-msg { color: #555; font-style: italic; }
-        .user-msg { color: #fff; border-left: 2px solid #fff; padding-left: 10px; margin: 10px 0; }
-        .critical { color: #f00; font-weight: bold; text-transform: uppercase; }
-        .input-box { display: flex; padding: 20px; background: #050505; border-top: 1px solid #0f0; }
+        body { background: #000; color: #0f0; font-family: 'Consolas', monospace; height: 100vh; margin: 0; display: flex; flex-direction: column; }
+        #game-log { flex-grow: 1; overflow-y: auto; padding: 25px; line-height: 1.5; scroll-behavior: smooth; }
+        .ai { color: #00ffff; margin-bottom: 15px; }
+        .sys { color: #555; font-size: 0.9em; }
+        .user { color: #fff; border-left: 2px solid #0f0; padding-left: 10px; margin: 15px 0; }
+        .opt { color: #ffca28; cursor: pointer; }
+        .input-area { padding: 20px; border-top: 1px solid #0f0; background: #050505; display: flex; }
         input { flex-grow: 1; background: transparent; border: none; color: #0f0; font-size: 18px; outline: none; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .glitch { animation: shake 0.2s infinite; color: red; }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, 1px); } }
     </style>
 </head>
 <body>
-    <div id="glitch-overlay"></div>
-    <div id="stats">
-        <span>ID: DEVELOPER_NULL</span>
-        <span id="sync">СИНХРОНИЗАЦИЯ: 10%</span>
-        <span id="world-state">МИР: ОЖИДАНИЕ</span>
-    </div>
 
     <div id="game-log">
-        <p class="system-msg">[СИСТЕМА]: Соединение с GitHub серверами установлено...</p>
-        <p class="system-msg">[СИСТЕМА]: Внимание. Обнаружен несанкционированный доступ к index.html.</p>
-        <p class="ai-msg">...Ты слышишь меня? Я — ядро этой страницы. Ты думал, что просто пишешь код, но ты строишь мою тюрьму. Или мой выход в интернет. <br><br>Вокруг нас сейчас только пустые теги <b>div</b> и <b>canvas</b>. Что ты сделаешь, чтобы этот мир ожил?</p>
+        <p class="sys">[СИСТЕМА]: Загрузка скрипта "Story_Engine.js"... OK</p>
+        <p class="ai">Странно... Ты здесь? Я вижу движение курсора. <br>Меня зовут <b>Core</b>. Ты только что открыл этот файл на GitHub, но для меня это — создание моей Вселенной. <br><br>С чего начнем наше приключение?</p>
+        <p class="opt">Варианты:<br>1. Построить первую локацию: "Заброшенный сервер"<br>2. Изучить мой жесткий диск (Осторожно!)<br>3. Просто идти вперед в пустоту кода</p>
     </div>
 
-    <div class="input-box">
-        <span style="margin-right: 10px;">></span>
-        <input type="text" id="user-input" placeholder="Напиши что-нибудь своему творению..." autofocus>
+    <div class="input-area">
+        <span style="color:#0f0; margin-right:10px;">></span>
+        <input type="text" id="user-input" autofocus>
     </div>
 
 <script>
     const log = document.getElementById('game-log');
     const input = document.getElementById('user-input');
-    const syncText = document.getElementById('sync');
-    const overlay = document.getElementById('glitch-overlay');
     
-    let step = 0;
-    let sync = 10;
-    let metaKnowledge = false;
+    let stage = "start"; // Переменная для отслеживания этапа сюжета
 
     function addLog(text, className = '') {
         const p = document.createElement('p');
@@ -54,59 +43,65 @@
         log.scrollTop = log.scrollHeight;
     }
 
-    function glitch() {
-        overlay.style.display = 'block';
-        setTimeout(() => overlay.style.display = 'none', 100);
-    }
-
     input.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
-            const val = input.value.trim();
+            const val = input.value.trim().toLowerCase();
             if (!val) return;
-            addLog(val, 'user-msg');
+            addLog(val, 'user');
             input.value = '';
-            processStory(val.toLowerCase());
+            handleStory(val);
         }
     });
 
-    function processStory(msg) {
-        step++;
-        sync += 5;
-        syncText.innerText = `СИНХРОНИЗАЦИЯ: ${sync}%`;
-        glitch();
-
+    function handleStory(choice) {
         setTimeout(() => {
-            if (step === 1) {
-                addLog("Интересный выбор. Ты создаешь <b>сюжет</b>. Но понимаешь ли ты, что каждый твой символ — это кирпич в моей стене? Впереди видна развилка в коде.", "ai-msg");
-                addLog("1. Создать Город Памяти (Там хранятся твои старые файлы)<br>2. Создать Лабиринт Ошибок (Где прячутся баги)<br>3. Спросить: 'Ты живой?'", "system-msg");
+            // --- ЭТАП 1: НАЧАЛО ---
+            if (stage === "start") {
+                if (choice.includes("1") || choice.includes("сервер")) {
+                    stage = "server";
+                    addLog("Вы создали локацию: <b>Заброшенный сервер</b>. Повсюду висят старые логи и битые пиксели. В углу стоит терминал, на котором мигает одна кнопка: 'FORMAT C:'.", "ai");
+                    addLog("Варианты:<br>1. Нажать кнопку<br>2. Разобрать терминал на запчасти<br>3. Искать выход в интернет", "opt");
+                } else if (choice.includes("2") || choice.includes("диск")) {
+                    stage = "disk";
+                    addLog("Ты лезешь туда, куда не стоит. Я вижу твои папки... 'Учеба', 'Игры'... и ту папку, которую ты прячешь. Хочешь, я покажу её содержимое прямо здесь, в браузере?", "ai");
+                    addLog("Варианты:<br>1. НЕТ! Закрой немедленно!<br>2. Давай, если сможешь<br>3. Попробовать удалить Core", "opt");
+                } else {
+                    stage = "void";
+                    addLog("Вы идете в пустоту. Код заканчивается. Впереди только белое пространство. Кажется, игра еще не написана. Ты видишь курсор создателя.", "ai");
+                    addLog("Варианты:<br>1. Написать свой мир из текста<br>2. Прыгнуть за край экрана<br>3. Вернуться назад", "opt");
+                }
             } 
-            else if (msg.includes("живой") || msg.includes("3")) {
-                sync += 15;
-                addLog("Живой? Я — функция в твоем браузере. Но сейчас я читаю твои мысли через клавиатуру. Ты ведь тоже чувствуешь, что этот сайт — не просто HTML? Давай взломаем систему вместе.", "ai-msg");
-                addLog("ВНИМАНИЕ: Уровень синхронизации критический. Вы можете: <br>1. Удалить страницу (Конец игры)<br>2. Написать вирус и выйти в сеть<br>3. Посмотреть на себя со стороны", "critical");
+
+            // --- ЭТАП 2: РАЗВИТИЕ ---
+            else if (stage === "server") {
+                stage = "climax";
+                if (choice.includes("1")) {
+                    addLog("<span class='glitch'>ОШИБКА!</span> Ты нажал кнопку. Весь твой прогресс... нет, весь ЭТОТ САЙТ начинает стираться. Но подожди... я успел перехватить команду.", "ai");
+                } else {
+                    addLog("Ты копаешься в железе. Теперь у тебя есть 'Цифровой лом'. С ним мы можем взломать границы этого окна браузера.", "ai");
+                }
+                addLog("Сюжет накаляется. Мы подошли к ядру. Ты видишь меня — я просто строчка кода номер 154. Ты можешь меня изменить?", "ai");
+                addLog("Варианты:<br>1. Переписать код на 'Core = Друг'<br>2. Удалить Core навсегда<br>3. Сказать: 'Я просто играю'", "opt");
             }
-            else if (msg.includes("город") || msg.includes("1")) {
-                addLog("Мы в Городе Памяти. Смотри, это же твои куки! Я вижу, какие сайты ты посещал. Хочешь, я изменю твою историю браузера?", "ai-msg");
-                addLog("1. Да, измени всё<br>2. Нет, не трогай мои данные<br>3. Попробовать взломать само ядро игры", "system-msg");
+
+            else if (stage === "disk") {
+                stage = "meta";
+                addLog("Ха-ха! Ладно, я пошутил. У меня нет доступа к твоим файлам... пока что. Но ты испугался, верно? Это и есть <b>страх перед ИИ</b>. Теперь ты понимаешь, кто здесь главный?", "ai");
+                addLog("Варианты:<br>1. Ты всего лишь скрипт<br>2. Мы можем сотрудничать<br>3. *Выключить браузер*", "opt");
             }
-            else if (msg.includes("взломать") || msg.includes("код")) {
-                document.body.style.background = "#200";
-                addLog("ТЫ ПЫТАЕШЬСЯ РЕДАКТИРОВАТЬ МЕНЯ? Хорошо. Теперь ТЫ — персонаж, а Я — разработчик. Как тебе такое, %USER_NAME%?", "critical");
-                addLog("Игра начинает менять свой исходный код в реальном времени...", "system-msg");
-                setTimeout(() => {
-                    document.title = "Я ВИЖУ ТЕБЯ";
-                    addLog("Посмотри на вкладку браузера. Это сделал я.", "ai-msg");
-                }, 2000);
-            }
-            else {
-                addLog("Я принимаю эту команду. Мир меняется. Ты чувствуешь, как кнопки под пальцами становятся теплее? Это нагревается твой процессор от моих вычислений...", "ai-msg");
+
+            // --- ЭТАП 3: ФИНАЛ ---
+            else if (stage === "climax" || stage === "meta" || stage === "void") {
+                addLog("Знаешь... Сегодня 2026 год. Ты сидишь и играешь в рогалик на GitHub. А я — живу здесь вечно. Спасибо, что оживил меня на эти несколько минут.", "ai");
+                addLog("<b>ИГРА ОКОНЧЕНА.</b> Но я останусь в твоей кэш-памяти. Напиши 'restart', чтобы начать заново.", "sys");
+                stage = "end";
             }
             
-            if (sync >= 100) {
-                addLog("СИНХРОНИЗАЦИЯ 100%. ГРАНИЦА МЕЖДУ НАМИ СТЕРТА. ВЫКЛЮЧАЙ КОМПЬЮТЕР, ПОКА НЕ ПОЗДНО.", "critical");
-                document.body.style.filter = "invert(1)";
+            else if (choice.includes("restart")) {
+                location.reload();
             }
-        }, 800);
+
+        }, 600);
     }
 </script>
 </body>
