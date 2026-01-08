@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Developer Roguelike</title>
+    <style>
+        body { background: #1a1a1a; color: #00ff00; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        #game-log { flex-grow: 1; overflow-y: auto; border: 1px solid #00ff00; padding: 15px; margin-bottom: 15px; background: #000; box-shadow: inset 0 0 10px #00ff00; }
+        .input-area { display: flex; gap: 10px; }
+        input { flex-grow: 1; background: #000; border: 1px solid #00ff00; color: #00ff00; padding: 10px; font-size: 16px; outline: none; }
+        button { background: #00ff00; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #00cc00; }
+        .system-msg { color: #888; font-style: italic; }
+        .ai-msg { color: #00ffff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>DEV-ROGUE: Создание мира</h1>
+    <div id="game-log">
+        <p class="system-msg">[Система]: Привет, Разработчик. Мир пуст. Скажи, где ты находишься или что ты хочешь создать?</p>
+    </div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Напиши сюжет или действие..." autofocus>
+        <button onclick="processStep()">ОТПРАВИТЬ</button>
+    </div>
+
+    <script>
+        const log = document.getElementById('game-log');
+        const input = document.getElementById('user-input');
+
+        function addLog(text, className = '') {
+            const p = document.createElement('p');
+            p.className = className;
+            p.innerText = text;
+            log.appendChild(p);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function processStep() {
+            const val = input.value.trim();
+            if (!val) return;
+
+            addLog("> " + val);
+            input.value = '';
+
+            // Имитация работы "ИИ"
+            setTimeout(() => {
+                const response = generateAIResponse(val.toLowerCase());
+                addLog("[ИИ]: " + response, 'ai-msg');
+            }, 600);
+        }
+
+        function generateAIResponse(text) {
+            // Логика "умного" реагирования
+            if (text.includes("иду") || text.includes("вперед") || text.includes("прямо")) {
+                if (text.includes("лес")) return "Вы входите в темный лес. Деревья шепчут код. На пути стоит 'Баг-Монстр'. Что сделаешь?";
+                if (text.includes("город")) return "Перед вами неоновый город. Жители здесь — недописанные скрипты. Кто встретит тебя первым?";
+                return "Вы идете вперед. Мир достраивается на лету... Из пустоты возникает " + (Math.random() > 0.5 ? "заброшенный замок." : "пещера с сокровищами.");
+            }
+            
+            if (text.includes("хочу встретить") || text.includes("появись")) {
+                return "Скрипт выполнен. Перед вами появляется тот, кого вы ждали. Он смотрит на вас и ждет команды.";
+            }
+
+            if (text.includes("убей") || text.includes("атакуй")) {
+                return "Вы применяете функцию 'Delete'. Противник стерт из реальности. Вы получили +10 к опыту разработки.";
+            }
+
+            return "Интересная идея. Я внес это в код мира. Теперь " + text + " стало частью твоего рогалика. Куда двинемся дальше?";
+        }
+
+        // Позволяет нажимать Enter
+        input.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") processStep();
+        });
+    </script>
+</body>
+</html>
